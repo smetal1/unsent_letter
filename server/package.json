@@ -2,16 +2,15 @@
   "name": "unsent-letters-server",
   "version": "1.0.0",
   "description": "Stateless AI proxy server with JWT authentication for Unsent Letters app",
-  "main": "dist/app.js",
+  "main": "src/app.js",
   "scripts": {
-    "build": "tsc",
-    "dev": "tsx watch src/app.ts",
-    "start": "node dist/app.js",
+    "dev": "nodemon src/app.js",
+    "start": "node src/app.js",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "lint": "eslint src --ext .ts",
-    "lint:fix": "eslint src --ext .ts --fix"
+    "lint": "eslint src --ext .js",
+    "lint:fix": "eslint src --ext .js --fix"
   },
   "keywords": [
     "ai",
@@ -19,7 +18,7 @@
     "privacy",
     "jwt",
     "streaming",
-    "typescript"
+    "javascript"
   ],
   "author": "Unsent Letters Team",
   "license": "MIT",
@@ -38,19 +37,9 @@
     "dotenv": "^16.3.1"
   },
   "devDependencies": {
-    "@types/express": "^4.17.21",
-    "@types/cors": "^2.8.17",
-    "@types/cookie-parser": "^1.4.6",
-    "@types/node": "^20.10.6",
-    "@types/jest": "^29.5.11",
-    "@types/supertest": "^6.0.2",
-    "@typescript-eslint/eslint-plugin": "^6.16.0",
-    "@typescript-eslint/parser": "^6.16.0",
     "eslint": "^8.56.0",
     "jest": "^29.7.0",
-    "ts-jest": "^29.1.1",
-    "tsx": "^4.7.0",
-    "typescript": "^5.3.3",
+    "nodemon": "^3.0.0",
     "supertest": "^6.3.3"
   },
   "engines": {
