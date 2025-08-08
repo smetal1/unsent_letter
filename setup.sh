@@ -89,7 +89,23 @@ fi
 # Create .env file if not exists
 if [ ! -f .env ]; then
     print_info "Creating server .env file..."
-    cp .env.example .env
+    if [ -f .env.example ]; then
+        cp .env.example .env
+    else
+        # Fallback minimal template
+        cat > .env << EOF
+JWT_ISSUER=https://unsent-letters.local
+JWT_AUDIENCE=unsent-letters-mobile
+JWT_EXPIRES_IN=3600
+JWT_PRIVATE_KEY=""
+OPENAI_API_KEY=
+ANTHROPIC_API_KEY=
+LOCAL_PROVIDER=ollama
+OLLAMA_BASE_URL=http://ollama:11434
+LMSTUDIO_BASE_URL=http://lmstudio:1234
+VLLM_BASE_URL=http://vllm:8000
+EOF
+    fi
     
     # Insert the generated private key into .env
     PRIVATE_KEY=$(cat private.pem | sed ':a;N;$!ba;s/\n/\\n/g')
