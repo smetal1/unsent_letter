@@ -1,0 +1,71 @@
+name: unsent_letters
+description: Privacy-first AI journaling app where you write letters and receive thoughtful AI responses.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # State Management
+  hooks_riverpod: ^2.4.9
+  flutter_hooks: ^0.20.3
+  
+  # Authentication
+  google_sign_in: ^6.1.6
+  sign_in_with_apple: ^5.0.0
+  
+  # Networking & API
+  dio: ^5.3.2
+  eventsource: ^0.4.1
+  
+  # Local Storage & Encryption
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  flutter_secure_storage: ^9.0.0
+  crypto: ^3.0.3
+  
+  # UI Components
+  cupertino_icons: ^1.0.6
+  flutter_animate: ^4.2.0+1
+  auto_size_text: ^3.0.0
+  
+  # Navigation
+  go_router: ^12.1.1
+  
+  # Utilities
+  intl: ^0.18.1
+  uuid: ^4.1.0
+  path_provider: ^2.1.1
+  share_plus: ^7.2.1
+  url_launcher: ^6.2.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+  hive_generator: ^2.0.1
+  build_runner: ^2.4.7
+  json_annotation: ^4.8.1
+  json_serializable: ^6.7.1
+
+flutter:
+  uses-material-design: true
+  
+  assets:
+    - assets/images/
+    - assets/icons/
+  
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-Regular.ttf
+        - asset: assets/fonts/Inter-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Inter-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Inter-Bold.ttf
+          weight: 700
