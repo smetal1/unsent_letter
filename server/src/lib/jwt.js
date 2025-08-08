@@ -1,5 +1,8 @@
 const { SignJWT, jwtVerify } = require('jose');
 
+// Ensure environment variables are loaded
+require('dotenv').config();
+
 class JWTService {
   constructor() {
     this.privateKey = process.env.JWT_PRIVATE_KEY || '';

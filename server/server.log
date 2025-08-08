@@ -1,0 +1,16 @@
+nohup: ignoring input
+No Google client IDs configured. Google Sign-In will not work.
+No Apple audience IDs configured. Apple Sign-In will not work.
+OPENAI_API_KEY not configured. OpenAI provider will not work.
+ANTHROPIC_API_KEY not configured. Anthropic provider will not work.
+🚀 Unsent Letters server running on port 8080
+📊 Admin dashboard: http://localhost:8080/admin
+🏥 Health check: http://localhost:8080/v1/health
+
+📋 Configuration Status:
+   Environment: development
+   CORS Origins: http://localhost:5173, capacitor://localhost
+   Rate Limit: 60 requests per 60s
+   AI Providers: Local (ollama)
+   Auth Providers: None configured
+
