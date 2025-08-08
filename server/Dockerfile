@@ -1,27 +1,35 @@
-# Use Node.js LTS version
-FROM node:18-alpine
+FROM node:18-alpine AS builder
 
-# Set working directory
 WORKDIR /app
 
-# Install system dependencies
-RUN apk add --no-cache curl
-
-# Copy package files
+# Install dependencies (including dev) for building
 COPY package*.json ./
+RUN npm ci
 
-# Install dependencies
-RUN npm ci --only=production
-
-# Copy source code
+# Copy source and build
 COPY . .
-
-# Build TypeScript
 RUN npm run build
 
+# --- Production image ---
+FROM node:18-alpine
+
+WORKDIR /app
+
+# System deps used by healthcheck
+RUN apk add --no-cache curl
+
+ENV NODE_ENV=production
+
+# Install only production dependencies
+COPY package*.json ./
+RUN npm ci --only=production
+
+# Copy built artifacts and any static assets
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/public ./public
+
 # Create non-root user
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nodejs -u 1001
+RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
 
 # Change ownership of app directory
 RUN chown -R nodejs:nodejs /app
@@ -29,7 +37,6 @@ RUN chown -R nodejs:nodejs /app
 # Switch to non-root user
 USER nodejs
 
-# Expose port
 EXPOSE 8080
 
 # Health check
