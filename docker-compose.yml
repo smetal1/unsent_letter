@@ -1,0 +1,147 @@
+version: '3.8'
+
+services:
+  # Main server
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - NODE_ENV=development
+      - PORT=8080
+      - ALLOW_ORIGINS=http://localhost:3000,capacitor://localhost
+      # AI Provider Configuration (set via .env file)
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - LOCAL_PROVIDER=${LOCAL_PROVIDER:-ollama}
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - LMSTUDIO_BASE_URL=http://lmstudio:1234
+      - VLLM_BASE_URL=http://vllm:8000
+      # Auth Configuration
+      - JWT_ISSUER=${JWT_ISSUER:-https://unsent-letters.local}
+      - JWT_AUDIENCE=${JWT_AUDIENCE:-unsent-letters-mobile}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-3600}
+      - JWT_PRIVATE_KEY=${JWT_PRIVATE_KEY}
+      - GOOGLE_CLIENT_ID_IOS=${GOOGLE_CLIENT_ID_IOS:-}
+      - GOOGLE_CLIENT_ID_ANDROID=${GOOGLE_CLIENT_ID_ANDROID:-}
+      - APPLE_AUDIENCE_BUNDLE_ID=${APPLE_AUDIENCE_BUNDLE_ID:-}
+      # Rate Limiting
+      - RATE_LIMIT_WINDOW_MS=${RATE_LIMIT_WINDOW_MS:-60000}
+      - RATE_LIMIT_MAX=${RATE_LIMIT_MAX:-60}
+      - MAX_LETTER_CHARS=${MAX_LETTER_CHARS:-6000}
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+    depends_on:
+      - ollama
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Ollama (default local AI provider)
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    profiles:
+      - ollama
+      - default
+
+  # LM Studio (OpenAI-compatible local server)
+  lmstudio:
+    image: lmstudio/server:latest
+    ports:
+      - "1234:1234"
+    volumes:
+      - lmstudio_models:/models
+      - lmstudio_config:/config
+    environment:
+      - MODEL_PATH=/models
+      - HOST=0.0.0.0
+      - PORT=1234
+      - THREADS=${LMSTUDIO_THREADS:-4}
+      - CONTEXT_SIZE=${LMSTUDIO_CONTEXT:-2048}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:1234/v1/models"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    profiles:
+      - lmstudio
+    # Note: You'll need to manually place model files in the lmstudio_models volume
+
+  # vLLM (High-performance inference server)
+  vllm:
+    image: vllm/vllm-openai:latest
+    ports:
+      - "8000:8000"
+    environment:
+      - MODEL=${VLLM_MODEL:-microsoft/DialoGPT-medium}
+      - HOST=0.0.0.0
+      - PORT=8000
+      - TENSOR_PARALLEL_SIZE=${VLLM_TENSOR_PARALLEL:-1}
+      - MAX_MODEL_LEN=${VLLM_MAX_MODEL_LEN:-2048}
+    volumes:
+      - vllm_cache:/root/.cache
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/v1/models"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    profiles:
+      - vllm
+    # Requires GPU support for optimal performance
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  # Nginx reverse proxy (optional, for production)
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - server
+    restart: unless-stopped
+    profiles:
+      - production
+
+volumes:
+  ollama_data:
+    driver: local
+  lmstudio_models:
+    driver: local
+  lmstudio_config:
+    driver: local
+  vllm_cache:
+    driver: local
+
+networks:
+  default:
+    name: unsent-letters
+    driver: bridge

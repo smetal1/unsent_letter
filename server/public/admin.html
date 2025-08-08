@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unsent Letters - Admin Status</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .card h2 {
+            color: #4a5568;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .status-healthy { background-color: #48bb78; }
+        .status-warning { background-color: #ed8936; }
+        .status-error { background-color: #f56565; }
+
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .metric:last-child {
+            border-bottom: none;
+        }
+
+        .metric-label {
+            color: #718096;
+            font-weight: 500;
+        }
+
+        .metric-value {
+            color: #2d3748;
+            font-weight: 600;
+        }
+
+        .provider-grid {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .provider {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: #f7fafc;
+            border-radius: 8px;
+            border-left: 4px solid transparent;
+        }
+
+        .provider.enabled {
+            border-left-color: #48bb78;
+        }
+
+        .provider.disabled {
+            border-left-color: #e2e8f0;
+        }
+
+        .provider-name {
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .provider-status {
+            font-size: 0.875rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+
+        .provider-status.enabled {
+            background-color: #c6f6d5;
+            color: #22543d;
+        }
+
+        .provider-status.disabled {
+            background-color: #fed7d7;
+            color: #742a2a;
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            opacity: 0.8;
+            margin-top: 2rem;
+        }
+
+        .loading {
+            text-align: center;
+            color: #718096;
+            padding: 2rem;
+        }
+
+        .error {
+            background: #fed7d7;
+            color: #742a2a;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Unsent Letters</h1>
+            <p>Admin Status Dashboard</p>
+        </div>
+
+        <div id="loading" class="loading">
+            Loading system status...
+        </div>
+
+        <div id="error" class="error" style="display: none;"></div>
+
+        <div id="content" style="display: none;">
+            <div class="grid">
+                <!-- System Health -->
+                <div class="card">
+                    <h2>
+                        <span id="health-indicator" class="status-indicator"></span>
+                        System Health
+                    </h2>
+                    <div class="metric">
+                        <span class="metric-label">Status</span>
+                        <span id="health-status" class="metric-value">-</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Uptime</span>
+                        <span id="uptime" class="metric-value">-</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Environment</span>
+                        <span id="environment" class="metric-value">-</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Version</span>
+                        <span id="version" class="metric-value">-</span>
+                    </div>
+                </div>
+
+                <!-- Authentication -->
+                <div class="card">
+                    <h2>
+                        <span id="auth-indicator" class="status-indicator"></span>
+                        Authentication
+                    </h2>
+                    <div class="metric">
+                        <span class="metric-label">JWT Issuer</span>
+                        <span id="jwt-issuer" class="metric-value">-</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Token Expiry</span>
+                        <span id="jwt-expiry" class="metric-value">-</span>
+                    </div>
+                    <div class="provider-grid">
+                        <div id="google-auth" class="provider">
+                            <span class="provider-name">Google Sign-In</span>
+                            <span class="provider-status">-</span>
+                        </div>
+                        <div id="apple-auth" class="provider">
+                            <span class="provider-name">Apple Sign-In</span>
+                            <span class="provider-status">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Providers -->
+                <div class="card">
+                    <h2>
+                        <span id="ai-indicator" class="status-indicator"></span>
+                        AI Providers
+                    </h2>
+                    <div class="provider-grid" id="ai-providers">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Configuration -->
+                <div class="card">
+                    <h2>
+                        <span class="status-indicator status-healthy"></span>
+                        Configuration
+                    </h2>
+                    <div class="metric">
+                        <span class="metric-label">Max Letter Length</span>
+                        <span id="max-letter-chars" class="metric-value">-</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Rate Limit</span>
+                        <span id="rate-limit" class="metric-value">-</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">CORS Origins</span>
+                        <span id="cors-origins" class="metric-value">-</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Last updated: <span id="last-updated">-</span></p>
+            <p>Unsent Letters v1.0.0 - Privacy-first AI journaling</p>
+        </div>
+    </div>
+
+    <script>
+        let healthData = {};
+        let configData = {};
+        let authData = {};
+
+        async function fetchData() {
+            try {
+                // Fetch health data
+                const healthResponse = await fetch('/v1/health');
+                healthData = await healthResponse.json();
+
+                // Fetch public configuration
+                const configResponse = await fetch('/v1/config/public');
+                configData = await configResponse.json();
+
+                // Fetch auth providers
+                const authResponse = await fetch('/v1/auth/providers');
+                authData = await authResponse.json();
+
+                updateUI();
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+                document.getElementById('error').style.display = 'none';
+
+            } catch (error) {
+                console.error('Failed to fetch data:', error);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').textContent = `Failed to load system status: ${error.message}`;
+                document.getElementById('error').style.display = 'block';
+            }
+        }
+
+        function updateUI() {
+            // Update last updated time
+            document.getElementById('last-updated').textContent = new Date().toLocaleString();
+
+            // System Health
+            const healthIndicator = document.getElementById('health-indicator');
+            const healthStatus = document.getElementById('health-status');
+            
+            if (healthData.status === 'ok') {
+                healthIndicator.className = 'status-indicator status-healthy';
+                healthStatus.textContent = 'Healthy';
+            } else {
+                healthIndicator.className = 'status-indicator status-error';
+                healthStatus.textContent = 'Unhealthy';
+            }
+
+            document.getElementById('uptime').textContent = healthData.uptime || '-';
+            document.getElementById('environment').textContent = healthData.environment || '-';
+            document.getElementById('version').textContent = healthData.version || '1.0.0';
+
+            // Authentication
+            const authIndicator = document.getElementById('auth-indicator');
+            let authHealthy = false;
+
+            if (configData.auth) {
+                document.getElementById('jwt-issuer').textContent = configData.auth.issuer || '-';
+                document.getElementById('jwt-expiry').textContent = configData.auth.expiresIn ? `${configData.auth.expiresIn}s` : '-';
+                authHealthy = true;
+            }
+
+            if (authData.google) {
+                const googleElement = document.getElementById('google-auth');
+                const googleStatus = googleElement.querySelector('.provider-status');
+                if (authData.google.enabled) {
+                    googleElement.className = 'provider enabled';
+                    googleStatus.textContent = 'Enabled';
+                    googleStatus.className = 'provider-status enabled';
+                } else {
+                    googleElement.className = 'provider disabled';
+                    googleStatus.textContent = 'Disabled';
+                    googleStatus.className = 'provider-status disabled';
+                }
+            }
+
+            if (authData.apple) {
+                const appleElement = document.getElementById('apple-auth');
+                const appleStatus = appleElement.querySelector('.provider-status');
+                if (authData.apple.enabled) {
+                    appleElement.className = 'provider enabled';
+                    appleStatus.textContent = 'Enabled';
+                    appleStatus.className = 'provider-status enabled';
+                } else {
+                    appleElement.className = 'provider disabled';
+                    appleStatus.textContent = 'Disabled';
+                    appleStatus.className = 'provider-status disabled';
+                }
+            }
+
+            authIndicator.className = authHealthy ? 'status-indicator status-healthy' : 'status-indicator status-warning';
+
+            // AI Providers
+            const aiIndicator = document.getElementById('ai-indicator');
+            const aiProvidersContainer = document.getElementById('ai-providers');
+            aiProvidersContainer.innerHTML = '';
+
+            let aiHealthy = false;
+            
+            if (configData.ai) {
+                const providers = ['openai', 'anthropic', 'local'];
+                
+                providers.forEach(providerName => {
+                    const provider = configData.ai[providerName];
+                    if (provider) {
+                        const providerElement = document.createElement('div');
+                        providerElement.className = provider.enabled ? 'provider enabled' : 'provider disabled';
+                        
+                        let displayName = providerName.charAt(0).toUpperCase() + providerName.slice(1);
+                        if (providerName === 'local' && provider.provider) {
+                            displayName = `Local (${provider.provider})`;
+                        }
+                        
+                        providerElement.innerHTML = `
+                            <span class="provider-name">${displayName}</span>
+                            <span class="provider-status ${provider.enabled ? 'enabled' : 'disabled'}">
+                                ${provider.enabled ? 'Enabled' : 'Disabled'}
+                            </span>
+                        `;
+                        
+                        aiProvidersContainer.appendChild(providerElement);
+                        
+                        if (provider.enabled) {
+                            aiHealthy = true;
+                        }
+                    }
+                });
+            }
+
+            aiIndicator.className = aiHealthy ? 'status-indicator status-healthy' : 'status-indicator status-error';
+
+            // Configuration
+            if (configData.limits) {
+                document.getElementById('max-letter-chars').textContent = 
+                    configData.limits.maxLetterChars ? `${configData.limits.maxLetterChars} chars` : '-';
+            }
+
+            if (configData.rateLimit) {
+                document.getElementById('rate-limit').textContent = 
+                    `${configData.rateLimit.max}/${configData.rateLimit.windowMs}ms`;
+            }
+
+            if (configData.cors) {
+                const origins = configData.cors.origins;
+                document.getElementById('cors-origins').textContent = 
+                    Array.isArray(origins) ? origins.join(', ') : (origins || '-');
+            }
+        }
+
+        // Auto-refresh every 30 seconds
+        function startAutoRefresh() {
+            setInterval(fetchData, 30000);
+        }
+
+        // Initial load
+        fetchData().then(() => {
+            startAutoRefresh();
+        });
+    </script>
+</body>
+</html>
