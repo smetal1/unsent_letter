@@ -86,7 +86,10 @@ Remember: This is a safe space for emotional expression and healing.`;
  * POST /v1/ai/reply
  * Get AI response to a letter (non-streaming)
  */
-router.post('/reply', authRequired, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+router.post('/reply', authRequired, async (req: Request, res: Response): Promise<void> => {
+  // After authRequired middleware, req.user is guaranteed to exist
+  const authenticatedReq = req as AuthenticatedRequest;
+  
   try {
     // Validate request body
     const { messages, provider: requestedProvider } = aiRequestSchema.parse(req.body);
@@ -105,7 +108,7 @@ router.post('/reply', authRequired, async (req: AuthenticatedRequest, res: Respo
 
     // Log successful request (no content)
     console.info('AI reply generated:', {
-      userId: req.user.userId.substring(0, 8) + '...',
+      userId: authenticatedReq.user.userId.substring(0, 8) + '...',
       provider: requestedProvider || 'auto',
       messageCount: messages.length,
       timestamp: new Date().toISOString(),
@@ -120,7 +123,7 @@ router.post('/reply', authRequired, async (req: AuthenticatedRequest, res: Respo
     // Log error (no sensitive content)
     console.error('AI reply failed:', {
       error: error instanceof Error ? error.message : 'Unknown error',
-      userId: req.user?.userId?.substring(0, 8) + '...' || 'unknown',
+      userId: authenticatedReq?.user?.userId?.substring(0, 8) + '...' || 'unknown',
       provider: req.body?.provider,
       timestamp: new Date().toISOString(),
     });
@@ -163,7 +166,10 @@ router.post('/reply', authRequired, async (req: AuthenticatedRequest, res: Respo
  * POST /v1/ai/reply/stream
  * Get streaming AI response to a letter
  */
-router.post('/reply/stream', authRequired, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+router.post('/reply/stream', authRequired, async (req: Request, res: Response): Promise<void> => {
+  // After authRequired middleware, req.user is guaranteed to exist
+  const authenticatedReq = req as AuthenticatedRequest;
+  
   try {
     // Validate request body
     const { messages, provider: requestedProvider } = aiRequestSchema.parse(req.body);
@@ -179,7 +185,7 @@ router.post('/reply/stream', authRequired, async (req: AuthenticatedRequest, res
 
     // Log stream start (no content)
     console.info('AI stream started:', {
-      userId: req.user.userId.substring(0, 8) + '...',
+      userId: authenticatedReq.user.userId.substring(0, 8) + '...',
       provider: requestedProvider || 'auto',
       messageCount: messages.length,
       timestamp: new Date().toISOString(),
@@ -192,7 +198,7 @@ router.post('/reply/stream', authRequired, async (req: AuthenticatedRequest, res
     // Log error (no sensitive content)
     console.error('AI streaming failed:', {
       error: error instanceof Error ? error.message : 'Unknown error',
-      userId: req.user?.userId?.substring(0, 8) + '...' || 'unknown',
+      userId: authenticatedReq?.user?.userId?.substring(0, 8) + '...' || 'unknown',
       provider: req.body?.provider,
       timestamp: new Date().toISOString(),
     });
@@ -243,7 +249,7 @@ router.post('/reply/stream', authRequired, async (req: AuthenticatedRequest, res
  * GET /v1/ai/providers
  * Get available AI providers and their status
  */
-router.get('/providers', authRequired, (req: AuthenticatedRequest, res: Response): void => {
+router.get('/providers', authRequired, (req: Request, res: Response): void => {
   res.json({
     openai: openaiProvider.getConfig(),
     anthropic: anthropicProvider.getConfig(),

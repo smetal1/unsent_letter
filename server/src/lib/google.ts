@@ -77,12 +77,26 @@ class GoogleAuthService {
     name?: string;
     picture?: string;
   } {
-    return {
+    const userInfo: {
+      userId: string;
+      email?: string;
+      name?: string;
+      picture?: string;
+    } = {
       userId: payload.sub,
-      email: payload.email,
-      name: payload.name,
-      picture: payload.picture,
     };
+
+    if (payload.email) {
+      userInfo.email = payload.email;
+    }
+    if (payload.name) {
+      userInfo.name = payload.name;
+    }
+    if (payload.picture) {
+      userInfo.picture = payload.picture;
+    }
+
+    return userInfo;
   }
 
   /**

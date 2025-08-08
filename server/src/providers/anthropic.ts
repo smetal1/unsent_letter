@@ -62,10 +62,18 @@ class AnthropicProvider {
         content: m.content,
       }));
 
-    return {
-      system: systemMessage?.content,
+    const payload: {
+      system?: string;
+      messages: AnthropicMessage[];
+    } = {
       messages: conversationMessages,
     };
+
+    if (systemMessage?.content) {
+      payload.system = systemMessage.content;
+    }
+
+    return payload;
   }
 
   /**

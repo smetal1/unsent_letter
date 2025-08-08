@@ -88,11 +88,22 @@ class AppleAuthService {
         .trim() || undefined;
     }
 
-    return {
+    const userInfo: {
+      userId: string;
+      email?: string;
+      name?: string;
+    } = {
       userId: payload.sub,
-      email: payload.email,
-      name: displayName,
     };
+
+    if (payload.email) {
+      userInfo.email = payload.email;
+    }
+    if (displayName) {
+      userInfo.name = displayName;
+    }
+
+    return userInfo;
   }
 
   /**
