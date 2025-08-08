@@ -36,13 +36,24 @@ A privacy-first AI-powered journaling app where you write letters to anyone (liv
 - Node.js (18+)
 - Docker & Docker Compose (optional, for local AI)
 
-### 1. Clone and Setup
+For detailed prerequisites and platform-specific setup instructions, see [PREREQUISITES.md](PREREQUISITES.md).
+
+### Option 1: Automated Setup (Recommended)
 ```bash
+# Clone the repository
 git clone <repo>
 cd unsent-letters
+
+# Check prerequisites
+./check-env.sh
+
+# Run automated setup
+./setup.sh
 ```
 
-### 2. Server Setup
+### Option 2: Manual Setup
+
+#### 1. Server Setup
 ```bash
 cd server
 npm install
@@ -51,7 +62,7 @@ cp .env.example .env
 npm run dev
 ```
 
-### 3. Mobile Setup
+#### 2. Mobile Setup
 ```bash
 cd mobile
 flutter pub get
@@ -60,16 +71,25 @@ flutter pub get
 flutter run
 ```
 
-### 4. Docker Compose (Optional)
+### Startup Scripts
+
+After setup, use these convenient startup scripts:
+
 ```bash
-# For Ollama
-docker-compose up ollama server
+# Start both server and mobile app
+./start-dev.sh
 
-# For LM Studio
-LOCAL_PROVIDER=lmstudio docker-compose up lmstudio server
+# Start only the server
+./start-server.sh
 
-# For vLLM
-LOCAL_PROVIDER=vllm docker-compose up vllm server
+# Start with Docker and local AI
+./start-docker.sh [ollama|lmstudio|vllm|server-only]
+
+# Run all tests
+./test-all.sh
+
+# Check environment
+./check-env.sh
 ```
 
 ## Configuration

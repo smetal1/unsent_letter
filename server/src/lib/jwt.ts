@@ -121,7 +121,9 @@ class JWTService {
         .replace(/\\n/g, '\n')
         .replace('-----BEGIN PRIVATE KEY-----', '')
         .replace('-----END PRIVATE KEY-----', '')
-        .replace(/\s+/g, '');
+        .replace(/\n/g, '')
+        .replace(/\r/g, '')
+        .trim();
 
       const binaryKey = Buffer.from(pemKey, 'base64');
 
@@ -145,8 +147,13 @@ class JWTService {
       // Export private key to get the public key
       const exported = await crypto.subtle.exportKey('jwk', privateKey);
       
-      // Remove private key components
-      const publicJwk = {
+      // Validate required properties exist
+      if (!exported.kty || !exported.n || !exported.e) {
+        throw new Error('Invalid key format: missing required JWK properties');
+      }
+      
+      // Remove private key components and ensure proper typing
+      const publicJwk: JsonWebKey = {
         kty: exported.kty,
         n: exported.n,
         e: exported.e,
